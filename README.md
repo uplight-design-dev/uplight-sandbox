@@ -50,6 +50,11 @@ Commit the rebuilt `index.html` — Vercel serves the files as they are, with no
 - The dark "Next section (demo spacer)" block after the hero only exists so the scroll effect can be previewed; remove it when placing the hero on a real page.
 - Mark OT is a licensed font and is embedded in the page. Confirm Uplight's licence covers web embedding, and keep this repository private.
 
+## Social image and favicons
+
+Shared at the repo root and used by every page: `og-image.jpg` (1200×630 social preview), `favicon.ico`, `favicon-32x32.png`, `favicon-192x192.png`, `apple-touch-icon.png` (the Uplight "i" mark from uplight.com).
+The `og:image` tags use the absolute URL `https://uplight-sandbox.vercel.app/og-image.jpg`, which social platforms require — update it if the site moves to a custom domain.
+
 ## Deploying on Vercel
 
 1. In Vercel, choose **Add New → Project** and import `uplight-design-dev/uplight-sandbox`.
