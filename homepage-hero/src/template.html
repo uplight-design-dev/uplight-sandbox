@@ -115,14 +115,15 @@
   .uh__title {
     font-weight: 700; font-size: 80px; line-height: 0.9; letter-spacing: -1.6px;
     max-width: 878px;
+    margin-left: -0.055em; /* optical: pulls the "P" stem onto the same left edge as the text below */
   }
   .uh__title span { display: block; }
   .uh__title span + span { margin-top: 12px; }
   .uh__lede {
-    margin: 18px 0 0 3px; max-width: 482px;
+    margin: 18px 0 0; max-width: 482px;
     font-weight: 450; font-size: 18px; line-height: 1.4;
   }
-  .uh__actions { display: flex; align-items: center; gap: 22px; margin: 22px 0 0 3px; }
+  .uh__actions { display: flex; align-items: center; gap: 22px; margin: 22px 0 0; }
   .uh__btn {
     display: inline-flex; align-items: center; justify-content: center;
     height: 45px; min-width: 166px; padding: 14px 23px;
@@ -190,7 +191,7 @@
   .uh__copy { padding-top: 45px; max-width: 406px; }
   .uh__toggle {
     position: relative; display: inline-grid; grid-template-columns: 100px 102px;
-    height: 37px; padding: 5px 7px; margin-left: -6px;
+    height: 37px; padding: 5px 7px;
     border-radius: 999px; background: rgba(255,255,255,.15);
   }
   .uh__pill { /* sliding white pill — positioned by anime.js */
