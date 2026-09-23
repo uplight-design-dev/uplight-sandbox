@@ -76,7 +76,7 @@
   .uh__cta {
     justify-self: end;
     display: inline-flex; align-items: center; justify-content: center;
-    width: 152px; height: 33px; margin-top: -7px;
+    height: 33px; padding: 0 18px; margin-top: -7px; /* hugs the label instead of a fixed 152px */
     border-radius: 99px; background: var(--green); color: var(--blue);
     transition: filter .2s;
   }
@@ -172,7 +172,7 @@
   .uh__toggle {
     position: relative; display: inline-grid; grid-template-columns: 100px 102px;
     height: 37px; padding: 5px 7px; margin-left: -6px;
-    border-radius: 999px; background: rgba(0,0,0,.22);
+    border-radius: 999px; background: rgba(255,255,255,.15);
   }
   .uh__pill { /* sliding white pill — positioned by anime.js */
     position: absolute; top: 5px; left: 7px; width: 100px; height: 26.5px;
