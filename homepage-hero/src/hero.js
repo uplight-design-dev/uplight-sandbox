@@ -20,6 +20,16 @@ const setMenu = (open) => {
 menu.addEventListener('click', () => setMenu(!root.classList.contains('is-open')));
 $$('.uh__drawer a').forEach((a) => a.addEventListener('click', () => setMenu(false)));
 
+/* ---------- Contact us: fill circle starts where the cursor enters / heads to where it leaves ---------- */
+const ctaDesk = $('.uh__cta--desk');
+const aimFill = (e) => {
+  const r = ctaDesk.getBoundingClientRect();
+  ctaDesk.style.setProperty('--x', `${e.clientX - r.left}px`);
+  ctaDesk.style.setProperty('--y', `${e.clientY - r.top}px`);
+};
+ctaDesk.addEventListener('pointerenter', aimFill);
+ctaDesk.addEventListener('pointerleave', aimFill);
+
 /* ---------- Utility / Residential toggle ---------- */
 const toggle = $('.uh__toggle');
 const pill = $('.uh__pill');

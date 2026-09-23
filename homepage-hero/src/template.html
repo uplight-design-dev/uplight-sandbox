@@ -100,6 +100,22 @@
     transition: filter .2s;
   }
   .uh__cta:hover { filter: brightness(1.08); }
+  /* Desktop Contact us hover: a black circle grows out from wherever the cursor enters (and shrinks
+     back toward where it leaves), while the label rolls up and a white copy rolls in behind it. */
+  .uh__cta--desk { position: relative; overflow: hidden; isolation: isolate; }
+  .uh__cta--desk:hover { filter: none; }
+  .uh__cta-fill {
+    position: absolute; z-index: -1; left: var(--x, 50%); top: var(--y, 50%);
+    width: 300px; height: 300px; border-radius: 50%; background: #000; pointer-events: none;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform .55s cubic-bezier(.22, .8, .24, 1);
+  }
+  .uh__cta-label { display: grid; overflow: hidden; }
+  .uh__cta-label > span { grid-area: 1 / 1; transition: transform .5s cubic-bezier(.22, .8, .24, 1); }
+  .uh__cta-label > span + span { color: #fff; transform: translateY(105%); }
+  .uh__cta--desk:hover .uh__cta-fill, .uh__cta--desk:focus-visible .uh__cta-fill { transform: translate(-50%, -50%) scale(1); }
+  .uh__cta--desk:hover .uh__cta-label > span:first-child, .uh__cta--desk:focus-visible .uh__cta-label > span:first-child { transform: translateY(-105%); }
+  .uh__cta--desk:hover .uh__cta-label > span + span, .uh__cta--desk:focus-visible .uh__cta-label > span + span { transform: translateY(0); transition-delay: .04s; }
   .uh__menu { display: none; justify-self: end; width: 40px; height: 40px; border-radius: 99px; align-items: center; justify-content: center; }
   .uh__menu span, .uh__menu span::before, .uh__menu span::after {
     display: block; width: 18px; height: 2px; background: #fff; border-radius: 2px; position: relative; transition: transform .25s, background .25s;
@@ -348,7 +364,7 @@
       <li><a href="#resources">Resources</a></li>
       <li><a href="#company">Company</a></li>
     </ul>
-    <a class="uh__cta uh__cta--desk" data-in="nav" href="#contact">Contact us</a>
+    <a class="uh__cta uh__cta--desk" data-in="nav" href="#contact"><span class="uh__cta-fill" aria-hidden="true"></span><span class="uh__cta-label"><span>Contact us</span><span aria-hidden="true">Contact us</span></span></a>
     <button class="uh__menu" data-in="nav" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="uh-drawer"><span></span></button>
     <div class="uh__drawer" id="uh-drawer">
       <a href="#solutions">Solutions</a>
