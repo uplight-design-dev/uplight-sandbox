@@ -121,6 +121,8 @@ placePill(tabs[0], true);
 window.addEventListener('resize', () => placePill(tabs.find((t) => t.dataset.tab === toggle.dataset.active), true));
 
 /* ---------- Card hover: lift, slow photo pan, shimmer outline, green overlay + CTA ---------- */
+let lastUserScroll = 0;
+['wheel', 'touchmove', 'keydown'].forEach((ev) => window.addEventListener(ev, () => { lastUserScroll = Date.now(); }, { passive: true }));
 if (canHover && !reduce) {
   $$('.uh__card').forEach((card) => {
     const imgs = card.querySelectorAll('.uh__card-media img');
@@ -150,8 +152,20 @@ if (canHover && !reduce) {
       animate(overlay, { opacity: 0, duration: 320, ease: 'out(2)' });
       animate(cta, { opacity: 0, y: 10, duration: 240, ease: 'out(2)' });
     };
-    card.addEventListener('mouseenter', enter);
-    card.addEventListener('mouseleave', leave);
+    // Hover-intent reveal: if the card's bottom (where the call to action sits) is cut off by the
+    // bottom of the viewport, gently scroll just enough to show it. Waits for a short, deliberate
+    // hover and never fights a scroll the visitor is already doing.
+    let revealTimer = null;
+    const reveal = () => {
+      if (Date.now() - lastUserScroll < 400) return;
+      const margin = 32;
+      const overflow = card.getBoundingClientRect().bottom + margin - window.innerHeight;
+      if (overflow <= 0) return;
+      // content layers rise ~0.34px per px scrolled, so the card closes the gap faster than the page moves
+      window.scrollBy({ top: Math.ceil(overflow / 1.34), behavior: 'smooth' });
+    };
+    card.addEventListener('mouseenter', () => { enter(); clearTimeout(revealTimer); revealTimer = setTimeout(reveal, 280); });
+    card.addEventListener('mouseleave', () => { clearTimeout(revealTimer); leave(); });
     card.addEventListener('focus', () => { if (card.matches(':focus-visible')) enter(); });
     card.addEventListener('blur', leave);
   });
