@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uplight — Powering a smarter, more flexible grid</title>
+<script>
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.documentElement.classList.add("uh-anim");
+    setTimeout(function () { document.documentElement.classList.remove("uh-anim"); }, 3000); /* failsafe */
+  }
+</script>
+<style>
+  @font-face { font-family: "Mark OT"; font-weight: 450; font-style: normal; font-display: swap; src: url({{mark_book}}) format("woff2"); }
+  @font-face { font-family: "Mark OT"; font-weight: 500; font-style: normal; font-display: swap; src: url({{mark_medium}}) format("woff2"); }
+  @font-face { font-family: "Mark OT"; font-weight: 700; font-style: normal; font-display: swap; src: url({{mark_bold}}) format("woff2"); }
+  :root {
+    --ink: #000313;
+    --royal: #000f9f;
+    --blue: #0047ff;
+    --green: #00e297;
+    --white: #ffffff;
+    --font: "Mark OT", system-ui, sans-serif;
+    --gutter: clamp(16px, 3.4vw, 49px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .uh-anim [data-in] { opacity: 0; } /* hidden until the anime.js load-in runs */
+  html, body { background: var(--ink); }
+  body { font-family: var(--font); color: var(--white); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+
+  /* ---------- Hero shell ---------- */
+  .uh {
+    position: relative;
+    overflow: hidden;
+    overflow: clip; /* clips like hidden but isn't a scroll container, so the sticky photo works */
+    background: var(--ink);
+    isolation: isolate;
+  }
+  /* Photo: 1444×865 at 1440, anchored 81px above the top, bottom meets the dark band at 784px.
+     The track is what scrolls slower than the page and fades out (anime.js); the photo inside it
+     takes the load-in and the pointer drift, so those never fight over the same properties. */
+  .uh__bgtrack { position: absolute; inset: 0; z-index: -2; pointer-events: none; will-change: transform, opacity; }
+  .uh__bg {
+    position: absolute; left: -0.28%; width: 100.28%; top: -5.625vw;
+    aspect-ratio: 1444 / 865;
+    overflow: hidden;
+  }
+  .uh__bg img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 70% 50%; }
+  .uh__bg::after { /* soft seam into the dark band */
+    content: ""; position: absolute; inset: auto 0 0 0; height: 90px;
+    background: linear-gradient(180deg, rgba(0,3,19,0) 0%, var(--ink) 100%);
+  }
+  .uh__topfade {
+    position: absolute; z-index: -1; pointer-events: none;
+    left: 0; right: 0; top: 0; height: 279px;
+    background: linear-gradient(180deg, var(--royal) 0%, rgba(0,15,159,0) 100%);
+  }
+
+  /* ---------- Nav ---------- */
+  .uh__nav {
+    position: relative; z-index: 5;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+    padding: 27px 51px 0 var(--gutter);
+    height: 108px; align-content: start;
+  }
+  .uh__logo { display: block; width: fit-content; line-height: 0; }
+  .uh__logo img { display: block; width: 184.452px; height: auto; }
+  .uh__links { display: flex; gap: 64px; list-style: none; }
+  .uh__links a, .uh__cta {
+    font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; line-height: 24px;
+  }
+  .uh__links a { opacity: 1; transition: opacity .2s; }
+  .uh__links a:hover { opacity: .7; }
+  .uh__cta {
+    justify-self: end;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 152px; height: 33px; margin-top: -7px;
+    border-radius: 99px; background: var(--green); color: var(--blue);
+    transition: filter .2s;
+  }
+  .uh__cta:hover { filter: brightness(1.08); }
+  .uh__menu { display: none; justify-self: end; width: 40px; height: 40px; border-radius: 99px; align-items: center; justify-content: center; }
+  .uh__menu span, .uh__menu span::before, .uh__menu span::after {
+    display: block; width: 18px; height: 2px; background: #fff; border-radius: 2px; position: relative; transition: transform .25s, background .25s;
+  }
+  .uh__menu span::before, .uh__menu span::after { content: ""; position: absolute; left: 0; }
+  .uh__menu span::before { top: -6px; } .uh__menu span::after { top: 6px; }
+  .uh.is-open .uh__menu span { background: transparent; }
+  .uh.is-open .uh__menu span::before { transform: translateY(6px) rotate(45deg); }
+  .uh.is-open .uh__menu span::after { transform: translateY(-6px) rotate(-45deg); }
+
+  /* ---------- Intro ---------- */
+  .uh__intro { padding: 105px var(--gutter) 0; }
+  .uh__title {
+    font-weight: 700; font-size: 80px; line-height: 0.9; letter-spacing: -1.6px;
+    max-width: 878px;
+  }
+  .uh__title span { display: block; }
+  .uh__title span + span { margin-top: 12px; }
+  .uh__lede {
+    margin: 18px 0 0 3px; max-width: 482px;
+    font-weight: 450; font-size: 18px; line-height: 1.4;
+  }
+  .uh__actions { display: flex; align-items: center; gap: 22px; margin: 22px 0 0 3px; }
+  .uh__btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 45px; min-width: 166px; padding: 14px 23px;
+    border-radius: 99px; border: 1px solid rgba(0,0,0,.2);
+    background: var(--blue); color: #fff;
+    font-weight: 500; font-size: 18px; line-height: 23px; white-space: nowrap;
+    transition: background .2s;
+  }
+  .uh__btn:hover { background: #1a5bff; }
+  /* Shimmer ring: a comet of brighter blues travelling the pill's 1px border at constant speed.
+     pathLength=100 normalises the perimeter; stacked translucent dashes (offset via leading gaps) share one leading edge, so opacity builds smoothly from tail to head. */
+  .uh__btn { position: relative; }
+  .uh__btn-glow {
+    position: absolute; inset: -0.5px; width: calc(100% + 1px); height: calc(100% + 1px);
+    overflow: visible; pointer-events: none; opacity: .8; z-index: 3;
+    filter: drop-shadow(0 0 2px rgba(77, 130, 255, .95)) drop-shadow(0 0 7px rgba(0, 71, 255, .7));
+    transition: opacity .4s;
+  }
+  .uh__btn:hover .uh__btn-glow, .uh__btn:focus-visible .uh__btn-glow { opacity: 1; }
+  .uh__btn-glow rect {
+    x: 0; y: 0; width: 100%; height: 100%; rx: 22px;
+    fill: none; stroke-linecap: butt;
+    animation: uh-comet 3.6s linear infinite;
+  }
+  .uh__btn-glow rect { stroke: #7aa3ff; stroke-width: 1.1; opacity: .15; }
+  .uh__btn:hover .uh__btn-glow rect { animation-duration: 2.4s; }
+  @keyframes uh-comet { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -100; } }
+  /* Background shimmer: a soft brighter-blue light drifting across the fill + a breathing outer glow */
+  .uh__btn { isolation: isolate; animation: uh-breathe 3.6s ease-in-out infinite; }
+  .uh__btn-text { position: relative; z-index: 2; }
+  .uh__btn-sheen { position: absolute; inset: 0; z-index: 1; border-radius: inherit; overflow: hidden; pointer-events: none; }
+  .uh__btn-sheen::before {
+    content: ""; position: absolute; top: -40%; left: 0; width: 70%; height: 180%;
+    background: radial-gradient(closest-side, rgba(96, 146, 255, .75), rgba(64, 120, 255, .35) 45%, rgba(0, 71, 255, 0));
+    filter: blur(6px);
+    animation: uh-sheen 3.6s cubic-bezier(.45, 0, .25, 1) infinite;
+  }
+  .uh__btn:hover .uh__btn-sheen::before, .uh__btn:hover { animation-duration: 2.4s; }
+  @keyframes uh-sheen {
+    0%   { transform: translateX(-110%); opacity: 0; }
+    15%  { opacity: 1; }
+    85%  { opacity: 1; }
+    100% { transform: translateX(160%); opacity: 0; }
+  }
+  @keyframes uh-breathe {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0, 71, 255, 0), 0 6px 18px -6px rgba(0, 71, 255, .45); }
+    50%      { box-shadow: 0 0 22px 2px rgba(40, 105, 255, .45), 0 8px 26px -6px rgba(0, 71, 255, .6); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .uh__btn-glow, .uh__btn-sheen { display: none; }
+    .uh__btn { animation: none; box-shadow: 0 0 16px rgba(40, 105, 255, .4); }
+  }
+  .uh__link { font-weight: 500; font-size: 14px; line-height: 23px; white-space: nowrap; }
+  .uh__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ---------- Feature row ---------- */
+  .uh__feature {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 40px;
+    margin-top: 121px;
+    padding: 0 0 105px var(--gutter);
+  }
+  .uh__copy { padding-top: 45px; max-width: 406px; }
+  .uh__toggle {
+    position: relative; display: inline-grid; grid-template-columns: 100px 102px;
+    height: 37px; padding: 5px 7px; margin-left: -6px;
+    border-radius: 999px; background: rgba(0,0,0,.22);
+  }
+  .uh__pill { /* sliding white pill — positioned by anime.js */
+    position: absolute; top: 5px; left: 7px; width: 100px; height: 26.5px;
+    border-radius: 999px; background: #fff; pointer-events: none;
+  }
+  .uh__toggle button {
+    position: relative; z-index: 1; height: 26.5px; font-size: 14px; line-height: 1.3;
+    color: #fff; font-weight: 700; transition: color .3s;
+  }
+  .uh__toggle button[aria-selected="true"] { color: #000; font-weight: 500; }
+  .uh__h4 { margin-top: 8px; font-weight: 700; font-size: 21px; line-height: 1.3; max-width: 391px; }
+  .uh__p { margin-top: 8px; font-weight: 450; font-size: 15px; line-height: 1.4; }
+  /* Both panels share one grid cell so switching cross-fades in place — no reflow, no display swap */
+  .uh__panels { display: grid; }
+  .uh__panel { grid-area: 1 / 1; will-change: opacity, transform; } /* kept on its own layer so text rendering never shifts mid-fade */
+
+  .uh__cards {
+    --s: min(1px, calc(100vw / 1440)); /* 1 design px, scaled down below 1440 */
+    display: grid; gap: calc(9 * var(--s));
+    grid-template-columns: calc(342 * var(--s)) calc(246 * var(--s)) calc(340.5 * var(--s));
+    margin-right: calc(-16.5 * var(--s)); /* right card bleeds past the viewport edge as in the design */
+  }
+  .uh__card { position: relative; will-change: transform; height: calc(268 * var(--s)); border-radius: 24px; overflow: hidden; }
+  /* Two photo sets per card (Utility / Residential) stacked; the active one sits on top.
+     Photos fill the card at their natural framing (no extra zoom); hover pans through whatever
+     the card crops off, by animating object-position — no transforms, so edges stay pixel-sharp. */
+  .uh__card-media { position: absolute; inset: 0; z-index: 0; isolation: isolate; } /* keeps photo z-order inside, below overlay + CTA */
+  .uh__card-media img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: 50% 100%;
+  }
+  .uh__card-media img[data-aud="utility"] { object-position: 50% 50%; }
+  .uh__card-media img[data-aud="utility"] { z-index: 2; }
+  .uh__card-media img.is-flip { transform: scaleX(-1); }
+  .uh__card-labels { display: grid; }
+  .uh__card-labels > * { grid-area: 1 / 1; align-self: end; } /* both labels sit on the arrow's baseline */
+  .uh__card--garage { height: calc(267 * var(--s)); margin-top: calc(1.23 * var(--s)); }
+  a.uh__card { display: block; color: inherit; outline: none; }
+  /* Shimmer outline: a 1px ring masked out of a rotating conic gradient */
+  @property --uh-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+  .uh__card-glow {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    border-radius: inherit; padding: 1px; opacity: 0;
+    background:
+      conic-gradient(from var(--uh-angle),
+        rgba(0, 226, 151, 0) 0deg,
+        rgba(0, 226, 151, 0) 250deg,
+        rgba(0, 226, 151, 0.55) 305deg,
+        #ffffff 338deg,
+        rgba(0, 226, 151, 0.55) 350deg,
+        rgba(0, 226, 151, 0) 360deg),
+      linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.16));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+  .uh__card-glow--soft { padding: 2px; filter: blur(3px); } /* soft bloom under the crisp line */
+  .uh__card.is-hover .uh__card-glow { animation: uh-orbit 4.5s linear infinite; }
+  @keyframes uh-orbit { to { --uh-angle: 360deg; } }
+  a.uh__card:focus-visible { box-shadow: 0 0 0 2px var(--ink), 0 0 0 4px var(--green); }
+  /* Hover overlay: #00E297 at 100% along the bottom, fading to 0 toward the top */
+  .uh__card-overlay {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: linear-gradient(0deg, #00E297 0%, rgba(0, 226, 151, 0.85) 18%, rgba(0, 226, 151, 0) 72%);
+  }
+  .uh__card-cta {
+    position: absolute; left: 22px; right: 20px; bottom: 20px;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 14px;
+    color: var(--ink); opacity: 0; pointer-events: none;
+  }
+  .uh__card-label { font-weight: 700; font-size: 19px; line-height: 1.2; letter-spacing: -0.2px; max-width: 16ch; }
+  .uh__card-arrow { flex: none; display: block; width: 26px; height: 26px; margin-bottom: 1px; }
+  .uh__card-arrow svg { display: block; width: 100%; height: 100%; }
+  /* No-hover devices (touch): keep the call to action visible */
+  @media (hover: none) {
+    .uh__card-glow { display: none; }
+    .uh__card-overlay { opacity: 1; background: linear-gradient(0deg, #00E297 0%, rgba(0, 226, 151, 0.75) 16%, rgba(0, 226, 151, 0) 55%); }
+    .uh__card-cta { opacity: 1; }
+  }
+  /* Reduced motion on hover devices: same overlay, no animation */
+  @media (hover: hover) and (prefers-reduced-motion: reduce) {
+    .uh__card:hover .uh__card-overlay, .uh__card:focus-visible .uh__card-overlay,
+    .uh__card:hover .uh__card-cta, .uh__card:focus-visible .uh__card-cta,
+    .uh__card:hover .uh__card-glow, .uh__card:focus-visible .uh__card-glow { opacity: 1; }
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1200px) {
+    .uh__feature { grid-template-columns: 1fr; gap: 40px; margin-top: 90px; padding-right: var(--gutter); }
+    .uh__copy { padding-top: 0; }
+    .uh__cards { grid-template-columns: 342fr 246fr 340fr; gap: 9px; margin-right: 0; }
+    .uh__cards .uh__card { height: clamp(200px, 25vw, 268px); margin-top: 0; }
+  }
+  @media (max-width: 1024px) {
+    .uh__links { gap: 32px; }
+    .uh__title { font-size: clamp(48px, 7.2vw, 80px); letter-spacing: -0.02em; }
+    .uh__intro { padding-top: 80px; }
+  }
+  @media (max-width: 860px) {
+    .uh__nav { grid-template-columns: 1fr auto; padding-right: var(--gutter); padding-top: 20px; height: 88px; }
+    .uh__links, .uh__cta--desk { display: none; }
+    .uh__menu { display: inline-flex; }
+    .uh__logo img { width: 128px; }
+    .uh__drawer {
+      display: flex; flex-direction: column; gap: 4px;
+      position: absolute; left: var(--gutter); right: var(--gutter); top: 72px;
+      padding: 12px; border-radius: 20px;
+      background: rgba(0, 10, 90, .92); backdrop-filter: blur(12px);
+      opacity: 0; transform: translateY(-8px); pointer-events: none; transition: opacity .2s, transform .2s;
+    }
+    .uh.is-open .uh__drawer { opacity: 1; transform: none; pointer-events: auto; }
+    .uh__drawer a { padding: 12px 14px; font-size: 13px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; border-radius: 12px; }
+    .uh__drawer a:hover { background: rgba(255,255,255,.08); }
+    .uh__drawer .uh__cta { width: 100%; height: 44px; margin: 8px 0 0; justify-self: auto; }
+    .uh__bg { top: 0; aspect-ratio: auto; height: 640px; }
+    .uh__bg img { object-position: 72% 50%; }
+    .uh__intro { padding-top: 64px; }
+    .uh__feature { margin-top: 120px; padding-bottom: 64px; }
+    .uh__cards { grid-template-columns: 1fr 1fr; }
+    .uh__cards .uh__card { height: auto; aspect-ratio: 4 / 3; }
+    .uh__cards .uh__card--garage { grid-column: 1 / -1; aspect-ratio: 16 / 9; }
+    .uh__cards .uh__card--flip, .uh__cards .uh__card--thermo { aspect-ratio: 1 / 1; }
+  }
+  @media (min-width: 861px) { .uh__drawer { display: none; } }
+  @media (max-width: 480px) {
+    .uh__title { font-size: 44px; line-height: .95; }
+    .uh__title span { display: inline; }
+    .uh__title span + span::before { content: " "; }
+    .uh__bg::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(0,3,19,0) 30%, rgba(0,3,19,.45) 55%, rgba(0,3,19,.2) 80%); }
+    .uh__lede { font-size: 16px; margin-left: 0; }
+    .uh__actions { margin-left: 0; }
+    .uh__btn { min-width: 0; font-size: 16px; }
+    .uh__bg { height: 600px; }
+    .uh__feature { margin-top: 96px; }
+    .uh__cards .uh__card { border-radius: 18px; }
+    .uh__card-cta { left: 14px; right: 12px; bottom: 12px; gap: 8px; }
+    .uh__card-label { font-size: 15px; }
+    .uh__card-arrow { width: 20px; height: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<section class="uh" id="uh">
+  <div class="uh__bgtrack"><div class="uh__bg" aria-hidden="true" data-in="bg"><img src="{{hero}}" alt=""></div></div>
+  <div class="uh__topfade" aria-hidden="true"></div>
+
+  <nav class="uh__nav" aria-label="Primary">
+    <a class="uh__logo" data-in="nav" href="/" aria-label="Uplight home"><img src="{{logo}}" width="184.452" height="54.0302" alt="Uplight"></a>
+    <ul class="uh__links" data-in="nav">
+      <li><a href="#solutions">Solutions</a></li>
+      <li><a href="#technology">Technology</a></li>
+      <li><a href="#resources">Resources</a></li>
+      <li><a href="#company">Company</a></li>
+    </ul>
+    <a class="uh__cta uh__cta--desk" data-in="nav" href="#contact">Contact us</a>
+    <button class="uh__menu" data-in="nav" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="uh-drawer"><span></span></button>
+    <div class="uh__drawer" id="uh-drawer">
+      <a href="#solutions">Solutions</a>
+      <a href="#technology">Technology</a>
+      <a href="#resources">Resources</a>
+      <a href="#company">Company</a>
+      <a class="uh__cta" href="#contact">Contact us</a>
+    </div>
+  </nav>
+
+  <div class="uh__intro">
+    <h1 class="uh__title"><span data-in="title">Powering a smarter,</span><span data-in="title">more flexible grid.</span></h1>
+    <p class="uh__lede" data-in="intro">Uplight orchestrates millions of distributed energy resources to accelerate the clean energy future.</p>
+    <div class="uh__actions" data-in="intro">
+      <a class="uh__btn" href="#contact"><span class="uh__btn-sheen" aria-hidden="true"></span><span class="uh__btn-text">Get in Touch</span><svg class="uh__btn-glow" aria-hidden="true"><rect pathLength="100" style="stroke-dasharray:42.0 58.0"/><rect pathLength="100" style="stroke-dasharray:0 1.75 40.25 58.0"/><rect pathLength="100" style="stroke-dasharray:0 3.5 38.5 58.0"/><rect pathLength="100" style="stroke-dasharray:0 5.25 36.75 58.0"/><rect pathLength="100" style="stroke-dasharray:0 7.0 35.0 58.0"/><rect pathLength="100" style="stroke-dasharray:0 8.75 33.25 58.0"/><rect pathLength="100" style="stroke-dasharray:0 10.5 31.5 58.0"/><rect pathLength="100" style="stroke-dasharray:0 12.25 29.75 58.0"/><rect pathLength="100" style="stroke-dasharray:0 14.0 28.0 58.0"/><rect pathLength="100" style="stroke-dasharray:0 15.75 26.25 58.0"/><rect pathLength="100" style="stroke-dasharray:0 17.5 24.5 58.0"/><rect pathLength="100" style="stroke-dasharray:0 19.25 22.75 58.0"/><rect pathLength="100" style="stroke-dasharray:0 21.0 21.0 58.0"/><rect pathLength="100" style="stroke-dasharray:0 22.75 19.25 58.0"/><rect pathLength="100" style="stroke-dasharray:0 24.5 17.5 58.0"/><rect pathLength="100" style="stroke-dasharray:0 26.25 15.75 58.0"/><rect pathLength="100" style="stroke-dasharray:0 28.0 14.0 58.0"/><rect pathLength="100" style="stroke-dasharray:0 29.75 12.25 58.0"/><rect pathLength="100" style="stroke-dasharray:0 31.5 10.5 58.0"/><rect pathLength="100" style="stroke-dasharray:0 33.25 8.75 58.0"/><rect pathLength="100" style="stroke-dasharray:0 35.0 7.0 58.0"/><rect pathLength="100" style="stroke-dasharray:0 36.75 5.25 58.0"/><rect pathLength="100" style="stroke-dasharray:0 38.5 3.5 58.0"/><rect pathLength="100" style="stroke-dasharray:0 40.25 1.75 58.0"/></svg></a>
+      <a class="uh__link" href="#solutions">Explore Solutions</a>
+    </div>
+  </div>
+
+  <div class="uh__feature">
+    <div class="uh__copy">
+      <div class="uh__toggle" role="tablist" aria-label="Audience" data-active="utility" data-in="copy">
+        <span class="uh__pill" aria-hidden="true"></span>
+        <button type="button" role="tab" aria-selected="true" aria-controls="uh-p-utility" data-tab="utility">Utility</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="uh-p-residential" data-tab="residential">Residential</button>
+      </div>
+      <div class="uh__panels" data-in="copy">
+      <div class="uh__panel" id="uh-p-utility" role="tabpanel" aria-hidden="false">
+        <h2 class="uh__h4">Orchestrate Distributed Energy Assets at Scale with an Edge DERMS</h2>
+        <p class="uh__p">Make distributed energy visible and relevant to grid operations with precise forecasting and localized control that maximizes system reliability</p>
+      </div>
+      <!-- Residential copy is a placeholder — not in the Figma frame. Replace with approved copy. -->
+      <div class="uh__panel" id="uh-p-residential" role="tabpanel" aria-hidden="true" inert style="opacity: 0; visibility: hidden;">
+        <h2 class="uh__h4">Help Customers Save with Smarter Home Energy</h2>
+        <p class="uh__p">Turn thermostats, batteries and heat pumps into flexible capacity with rewarding programs that lower bills and keep homes comfortable</p>
+      </div>
+      </div>
+    </div>
+
+    <!-- Card links point to placeholder anchors (per audience: data-href-utility / data-href-residential) — swap in the real URLs.
+         Utility card labels are placeholder copy. -->
+    <div class="uh__cards">
+      <a class="uh__card uh__card--garage" href="#grid-storage" data-href-utility="#grid-storage" data-href-residential="#battery-program" data-in="card"><span class="uh__card-media"><img data-aud="utility" src="{{ustorage}}" alt=""><img data-aud="residential" src="{{garage}}" alt=""></span><span class="uh__card-overlay" aria-hidden="true"></span><span class="uh__card-glow uh__card-glow--soft" aria-hidden="true"></span><span class="uh__card-glow" aria-hidden="true"></span><span class="uh__card-cta"><span class="uh__card-labels"><span class="uh__card-label" data-aud="utility">Learn about grid‑scale battery orchestration</span><span class="uh__card-label" data-aud="residential" aria-hidden="true" style="opacity: 0;">Learn about our battery program</span></span><span class="uh__card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span></span></a>
+      <a class="uh__card uh__card--flip" href="#commercial-demand-response" data-href-utility="#commercial-demand-response" data-href-residential="#heat-pump-program" data-in="card"><span class="uh__card-media"><img data-aud="utility" src="{{ucooling}}" alt=""><img data-aud="residential" class="is-flip" src="{{heatpump}}" alt=""></span><span class="uh__card-overlay" aria-hidden="true"></span><span class="uh__card-glow uh__card-glow--soft" aria-hidden="true"></span><span class="uh__card-glow" aria-hidden="true"></span><span class="uh__card-cta"><span class="uh__card-labels"><span class="uh__card-label" data-aud="utility">Learn about commercial demand response</span><span class="uh__card-label" data-aud="residential" aria-hidden="true" style="opacity: 0;">Learn about our heat pump program</span></span><span class="uh__card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span></span></a>
+      <a class="uh__card uh__card--thermo" href="#solar-integration" data-href-utility="#solar-integration" data-href-residential="#thermostat-program" data-in="card"><span class="uh__card-media"><img data-aud="utility" src="{{usolar}}" alt=""><img data-aud="residential" src="{{thermostat}}" alt=""></span><span class="uh__card-overlay" aria-hidden="true"></span><span class="uh__card-glow uh__card-glow--soft" aria-hidden="true"></span><span class="uh__card-glow" aria-hidden="true"></span><span class="uh__card-cta"><span class="uh__card-labels"><span class="uh__card-label" data-aud="utility">Learn about distributed solar integration</span><span class="uh__card-label" data-aud="residential" aria-hidden="true" style="opacity: 0;">Learn about our thermostat program</span></span><span class="uh__card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg></span></span></a>
+    </div>
+  </div>
+</section>
+<!-- Demo only: a long dark area so the scroll parallax + fade can be previewed. Delete when placing the hero in Framer. -->
+<div class="uh-demo-next" style="height: 200vh; background: #000313; display: grid; place-items: start center; padding-top: 30vh; font: 500 13px/1 'Mark OT', system-ui, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,.28);">Next section (demo spacer)</div>
+
+<script>/* anime.js v4.5.0 (MIT) — tree-shaken bundle */
+{{script}}
+</script>
+</body>
+</html>
