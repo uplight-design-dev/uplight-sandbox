@@ -122,7 +122,24 @@ window.addEventListener('resize', () => placePill(tabs.find((t) => t.dataset.tab
 
 /* ---------- Card hover: lift, slow photo pan, shimmer outline, green overlay + CTA ---------- */
 let lastUserScroll = 0;
-['wheel', 'touchmove', 'keydown'].forEach((ev) => window.addEventListener(ev, () => { lastUserScroll = Date.now(); }, { passive: true }));
+let autoScroll = null; // the running eased page scroll, if any
+['wheel', 'touchmove', 'keydown', 'mousedown'].forEach((ev) => window.addEventListener(ev, () => {
+  lastUserScroll = Date.now();
+  if (autoScroll) { autoScroll.cancel(); autoScroll = null; } // the visitor always wins
+}, { passive: true }));
+
+// Eased page scroll driven by anime.js (native smooth scroll is too quick and can't be tuned)
+const easeScrollBy = (dist) => {
+  if (autoScroll) autoScroll.cancel();
+  const pos = { y: window.scrollY };
+  autoScroll = animate(pos, {
+    y: pos.y + dist,
+    duration: Math.min(1500, 900 + dist * 2), // longer trips take a little longer
+    ease: 'inOut(3)',
+    onUpdate: () => window.scrollTo(0, pos.y),
+    onComplete: () => { autoScroll = null; },
+  });
+};
 if (canHover && !reduce) {
   $$('.uh__card').forEach((card) => {
     const imgs = card.querySelectorAll('.uh__card-media img');
@@ -162,7 +179,7 @@ if (canHover && !reduce) {
       const overflow = card.getBoundingClientRect().bottom + margin - window.innerHeight;
       if (overflow <= 0) return;
       // content layers rise ~0.34px per px scrolled, so the card closes the gap faster than the page moves
-      window.scrollBy({ top: Math.ceil(overflow / 1.34), behavior: 'smooth' });
+      easeScrollBy(Math.ceil(overflow / 1.34));
     };
     card.addEventListener('mouseenter', () => { enter(); clearTimeout(revealTimer); revealTimer = setTimeout(reveal, 280); });
     card.addEventListener('mouseleave', () => { clearTimeout(revealTimer); leave(); });
